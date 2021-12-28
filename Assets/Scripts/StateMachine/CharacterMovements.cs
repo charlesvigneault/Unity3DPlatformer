@@ -5,73 +5,97 @@ using System.Collections.Generic;
 
 public class CharacterMovements : BaseStateMachine
 {
-	//Controllers
+	/*********************
+	** Controllers
+	*********************/
 	private CharacterController _characterController;
 	private Animator _animator;
 	private CharacterInputsController _characterInput;
-	//	Getters and setters
+	//Getters and setters
 	public Animator Animator { get { return _animator; } }
 	public CharacterController CharacterController { get { return _characterController; } }
 
-	//Animator hashs
-	private int _isWalkingHash;
-	private int _isRunningHash;
-
-	//Private constants
-	private float _rocationFactorPerFrame = 15.0f;
-
-	//Public constants
+	/*********************
+	** Constants
+	*********************/
+	//Privates
+	private float _rocationFactorPerFrame = 25.0f;
+	//Public
 	public float ZERO = 0.0f;
 	public float FALLING_VELOCITY_CAP = -20f;
 	public float JUMP_BUFFER_TIMER = 0.25f;
 
-	//Character movement values
-	private Vector2 _currentMovementInput;
-	private float _rawYValue;
+	/*********************
+	** Character movements
+	*********************/
+	private float _movementSpeed = 4.0f;
+	private float _runningSpeed = 8.0f;
+	private Vector2 _currentMovementsInput;
 	private Vector3 _characterAppliedMovement;
 	private bool _isMovementPressed = false;
 	//	Getters and setters
-	public float RawYValue { get { return _rawYValue; } set { _rawYValue = value; } }
-	public float CharacterAppliedYMovement { get { return _characterAppliedMovement.y; } set { _characterAppliedMovement.y = value; } }
+	public float MovementSpeed { get { return _movementSpeed; } }
+	public float RunningSpeed { get { return _runningSpeed; } }
+	public bool IsMovementPressed { get { return _isMovementPressed; } }
+	public Vector2 CurrentMovementsInput { get { return _currentMovementsInput; } }
+	public float CharacterAppliedXMovement { get { return _characterAppliedMovement.x; } set { _characterAppliedMovement.x = value; } }
+	public float CharacterAppliedZMovement { get { return _characterAppliedMovement.z; } set { _characterAppliedMovement.z = value; } }
+	public bool IsRunning { get { return _currentMovementsInput.magnitude >= 0.9; } }
 
-	//States variables
+	/*********************
+	** State variables
+	*********************/
 	private StateFactory _states;
 
-
-	//Jump variables
+	/*********************
+	** Jump variables
+	*********************/
 	private bool _isJumpPressed = false;
-	private float _jumpPressTimer = 0;
-	private bool _isJumping = false;
+	private float _jumpPressTimer = -1000;
 	private float _maxJumpHeight = 2.0f;
 	private float _maxJumpTime = 0.5f;
+	private float _rawYValue;
 	private Dictionary<int, float> _jumpVelocities = new Dictionary<int, float>();
 	private Dictionary<int, float> _jumpGravities = new Dictionary<int, float>();
-	//	Getters and setters
+	//	Jump button get and set
 	public bool IsJumpPressed { get { return _isJumpPressed; } set { _isJumpPressed = value; } }
 	public float JumpPressTimer { get { return _jumpPressTimer; } set { _jumpPressTimer = value; } }
+	//	Jump arc get and set
 	public Dictionary<int, float> JumpVelocities { get { return _jumpVelocities; } }
 	public Dictionary<int, float> JumpGravities { get { return _jumpGravities; } }
+	//	Y values get and set
+	public float RawYValue { get { return _rawYValue; } set { _rawYValue = value; } }
+	public float CharacterAppliedYMovement { get { return _characterAppliedMovement.y; } set { _characterAppliedMovement.y = Mathf.Max(value, FALLING_VELOCITY_CAP); } }
+
+	/*********************
+	** Animator hashs
+	*********************/
+	private int _isWalkingHash;
+	private int _isRunningHash;
+	public int IsWalkingHash { get { return _isWalkingHash; } }
+	public int IsRunningHash { get { return _isRunningHash; } }
 
 	private void Awake()
 	{
+		// VARIABLES FIRST
+
 		//Initialize characters controllers
 		_characterInput = new CharacterInputsController();
 		_characterController = GetComponent<CharacterController>();
 		_animator = GetComponent<Animator>();
 
+		//Initialize animator hashs
+		_isWalkingHash = Animator.StringToHash("isWalking");
+		_isRunningHash = Animator.StringToHash("isRunning");
+
+		SetupCharacterInputsCallbacks();
+		SetupJumpVariables();
+
+		// SETUP STATE AFTER
+
 		//Initialize states
 		_states = new StateFactory(this);
 		SwitchState(_states.Grounded());
-
-		SetupAnimatorHashs();
-		SetupCharacterInputsCallbacks();
-		SetupJumpVariables();
-	}
-
-	private void SetupAnimatorHashs()
-	{
-		_isWalkingHash = Animator.StringToHash("isWalking");
-		_isRunningHash = Animator.StringToHash("isRunning");
 	}
 
 	private void SetupCharacterInputsCallbacks()
@@ -106,17 +130,18 @@ public class CharacterMovements : BaseStateMachine
 
 	private void OnMovementInput(InputAction.CallbackContext context)
 	{
-		_currentMovementInput = context.ReadValue<Vector2>();
-		_isMovementPressed = _currentMovementInput.magnitude != 0;
+		_currentMovementsInput = context.ReadValue<Vector2>();
+		_isMovementPressed = _currentMovementsInput.magnitude != 0;
 	}
 
 	private void OnJumpInput(InputAction.CallbackContext context)
 	{
-		_isJumpPressed = context.ReadValueAsButton();
-		if (_isJumpPressed)
+		bool isButtonPressed = context.ReadValueAsButton();
+		if (isButtonPressed)
 		{
 			_jumpPressTimer = Time.time;
 		}
+		_isJumpPressed = isButtonPressed;
 	}
 
 	// Update is called once per frame
@@ -131,9 +156,9 @@ public class CharacterMovements : BaseStateMachine
 	{
 		//Where the character should look based on his current movement vector
 		Vector3 positionToLookAt = Vector3.zero;
-		positionToLookAt.x = _currentMovementInput.x;
+		positionToLookAt.x = _currentMovementsInput.x;
 		positionToLookAt.y = ZERO;
-		positionToLookAt.z = _currentMovementInput.y;
+		positionToLookAt.z = _currentMovementsInput.y;
 
 		//The current rotation of the character
 		Quaternion currentRotation = transform.rotation;

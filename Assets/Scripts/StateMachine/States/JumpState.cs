@@ -27,7 +27,6 @@ public class JumpState : BaseState
 
 		//Reset variables
 		_isFalling = false;
-		_context.JumpPressTimer = 0;
 
 		//Reset jump if it have been too long between two jumps
 		if (_lastJumpTime + RESET_JUMP_COUNT_TIME < Time.time)
@@ -50,12 +49,11 @@ public class JumpState : BaseState
 		_context.RawYValue = _context.JumpVelocities[_currentJumpCount];
 		_context.CharacterAppliedYMovement = _context.JumpVelocities[_currentJumpCount];
 	}
-	public override void UpdateState()
+	protected override void UpdateState()
 	{
 		ModifyCharacterYVelocity();
-		CheckSwitchStates();
 	}
-	public override void FixedUpdateState() { }
+	protected override void FixedUpdateState() { }
 	public override void ExitState()
 	{
 		Debug.Log("LEAVE JUMP STATE");
@@ -65,12 +63,30 @@ public class JumpState : BaseState
 		_lastJumpTime = Time.time;
 
 	}
-	public override void InitializeSubState() { }
+	protected override void InitializeSubState()
+	{
+		//We could add conditions if we need to, in this case, the character will always spawn idle.
+		if (_context.IsMovementPressed)
+		{
+			if (_context.IsRunning)
+			{
+				SetSubState(_factory.Run());
+			}
+			else
+			{
+				SetSubState(_factory.Walk());
+			}
+		}
+		else
+		{
+			SetSubState(_factory.Idle());
+		}
+	}
 	public override void CheckSwitchStates()
 	{
 		if (_context.CharacterController.isGrounded)
 		{
-			_context.SwitchState(_factory.Grounded());
+			SwitchState(_factory.Grounded());
 		}
 	}
 
@@ -90,7 +106,7 @@ public class JumpState : BaseState
 		}
 
 		float currentYVelocity = previousVelocity + (currentGravity * Time.deltaTime);
-		_context.CharacterAppliedYMovement = Mathf.Max((previousVelocity + currentYVelocity) * 0.5f, _context.FALLING_VELOCITY_CAP);
+		_context.CharacterAppliedYMovement = (previousVelocity + currentYVelocity) * 0.5f;
 		_context.RawYValue = currentYVelocity;
 	}
 }

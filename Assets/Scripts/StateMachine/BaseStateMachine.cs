@@ -18,20 +18,22 @@ public abstract class BaseStateMachine : MonoBehaviour
 	{
 		if (newState != null && _currentState != newState && !_inTransition)
 		{
+			_inTransition = true;
 			//Call current child class state exit state
 			if (_currentState != null)
 			{
-				_currentState.ExitState();
+				_currentState.ExitStates();
 				_previousState = _currentState;
 			}
 
 			//New state enter state
-			newState.EnterState();
+			newState.EnterStates();
 
 			//Switch the state in the context
 			_currentState = newState;
-		}
 
+			_inTransition = false;
+		}
 	}
 
 	public void RevertState()
@@ -44,7 +46,7 @@ public abstract class BaseStateMachine : MonoBehaviour
 	{
 		if (_currentState != null && !_inTransition)
 		{
-			_currentState.UpdateState();
+			_currentState.UpdateStates();
 		}
 	}
 
@@ -52,7 +54,7 @@ public abstract class BaseStateMachine : MonoBehaviour
 	{
 		if (_currentState != null && !_inTransition)
 		{
-			_currentState.FixedUpdateState();
+			_currentState.FixedUpdateStates();
 		}
 	}
 

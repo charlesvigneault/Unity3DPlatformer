@@ -6,6 +6,7 @@ public class StateFactory
 	private RunState _runState;
 	private JumpState _jumpState;
 	private GroundedState _groundedState;
+	private FallingState _fallingState;
 
 	private StateFactory() { }
 	public StateFactory(CharacterMovements currentContext)
@@ -16,6 +17,7 @@ public class StateFactory
 		_runState = new RunState(_context, this);
 		_jumpState = new JumpState(_context, this);
 		_groundedState = new GroundedState(_context, this);
+		_fallingState = new FallingState(_context, this);
 	}
 
 	public BaseState Idle() { return _idleState; }
@@ -23,4 +25,5 @@ public class StateFactory
 	public BaseState Run() { return _runState; }
 	public BaseState Jump() { return _jumpState; }
 	public BaseState Grounded() { return _groundedState; }
+	public BaseState Falling() { return _fallingState; }
 }
