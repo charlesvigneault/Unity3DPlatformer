@@ -7,6 +7,8 @@ public class StateFactory
 	private JumpState _jumpState;
 	private GroundedState _groundedState;
 	private FallingState _fallingState;
+	private WallSlideState _wallSlideState;
+	private WallJumpState _wallJumpState;
 
 	private StateFactory() { }
 	public StateFactory(CharacterMovements currentContext)
@@ -18,6 +20,8 @@ public class StateFactory
 		_jumpState = new JumpState(_context, this);
 		_groundedState = new GroundedState(_context, this);
 		_fallingState = new FallingState(_context, this);
+		_wallSlideState = new WallSlideState(_context, this);
+		_wallJumpState = new WallJumpState(_context, this);
 	}
 
 	public BaseState Idle() { return _idleState; }
@@ -26,4 +30,6 @@ public class StateFactory
 	public BaseState Jump() { return _jumpState; }
 	public BaseState Grounded() { return _groundedState; }
 	public BaseState Falling() { return _fallingState; }
+	public BaseState WallSlide() { return _wallSlideState; }
+	public BaseState WallJump() { return _wallJumpState; }
 }

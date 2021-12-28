@@ -20,10 +20,23 @@ public class GroundedState : BaseState
 
 	protected override void UpdateState()
 	{
-		if (_context.CharacterController.isGrounded && OnSlope())
+		if (_context.CharacterController.isGrounded)
 		{
-			//To change, now I just apply a big gravity so the player stay stick to the ground
-			_context.CharacterAppliedYMovement = -5f;
+			//TEMPORARY CODE, SEE METHOD COMMENT
+			float slopeAngle = SlopeAngle();
+
+			if (slopeAngle > 40)
+			{
+				_context.CharacterAppliedYMovement = -9f;
+			}
+			else if (slopeAngle > 35)
+			{
+				_context.CharacterAppliedYMovement = -8f;
+			}
+			else
+			{
+				_context.CharacterAppliedYMovement = -7f;
+			}
 		}
 		else
 		{
@@ -31,18 +44,16 @@ public class GroundedState : BaseState
 		}
 	}
 
-	private bool OnSlope()
+	//Temporary method. We should look for ground and keep character on ground level when leaving ground in slope.
+	private float SlopeAngle()
 	{
 		RaycastHit hit;
 		if (Physics.Raycast(_context.transform.position, Vector3.down, out hit, (_context.CharacterController.height / 4) * 3))
 		{
-			if (hit.normal != Vector3.up)
-			{
-				return true;
-			}
+			return Vector3.Angle(Vector3.up, hit.normal);
 		}
 
-		return false;
+		return 0;
 	}
 
 	protected override void FixedUpdateState() { }

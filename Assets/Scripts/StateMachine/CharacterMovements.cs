@@ -28,7 +28,7 @@ public class CharacterMovements : BaseStateMachine
 	/*********************
 	** Character movements
 	*********************/
-	private float _movementSpeed = 4.0f;
+	private float _movementSpeed = 4.5f;
 	private float _runningSpeed = 8.0f;
 	private Vector2 _currentMovementsInput;
 	private Vector3 _characterAppliedMovement;
@@ -53,7 +53,7 @@ public class CharacterMovements : BaseStateMachine
 	private bool _isJumpPressed = false;
 	private float _jumpPressTimer = -1000;
 	private float _maxJumpHeight = 2.0f;
-	private float _maxJumpTime = 0.5f;
+	private float _maxJumpTime = 0.55f;
 	private float _rawYValue;
 	private Dictionary<int, float> _jumpVelocities = new Dictionary<int, float>();
 	private Dictionary<int, float> _jumpGravities = new Dictionary<int, float>();
@@ -66,6 +66,12 @@ public class CharacterMovements : BaseStateMachine
 	//	Y values get and set
 	public float RawYValue { get { return _rawYValue; } set { _rawYValue = value; } }
 	public float CharacterAppliedYMovement { get { return _characterAppliedMovement.y; } set { _characterAppliedMovement.y = Mathf.Max(value, FALLING_VELOCITY_CAP); } }
+
+	/*********************
+	** Wall slide variables
+	*********************/
+	private float _lastWallSlideTime = 0;
+	private Vector3 _wallColliderVector = Vector3.zero;
 
 	/*********************
 	** Animator hashs
@@ -115,8 +121,8 @@ public class CharacterMovements : BaseStateMachine
 		float initialJumpVelocity = (2 * _maxJumpHeight) / timeToApex;
 		float secondJumpGravity = (-2 * (_maxJumpHeight * 1.5f)) / Mathf.Pow((timeToApex * 1.25f), 2);
 		float secondJumpVelocity = (2 * (_maxJumpHeight * 1.5f)) / (timeToApex * 1.25f);
-		float thirdJumpGravity = (-2 * (_maxJumpHeight * 2f)) / Mathf.Pow((timeToApex * 1.5f), 2);
-		float thirdJumpVelocity = (2 * (_maxJumpHeight * 2f)) / (timeToApex * 1.5f);
+		float thirdJumpGravity = (-2 * (_maxJumpHeight * 2f)) / Mathf.Pow((timeToApex * 1.7f), 2);
+		float thirdJumpVelocity = (2 * (_maxJumpHeight * 2f)) / (timeToApex * 1.7f);
 
 		_jumpVelocities.Add(1, initialJumpVelocity);
 		_jumpVelocities.Add(2, secondJumpVelocity);
@@ -182,4 +188,27 @@ public class CharacterMovements : BaseStateMachine
 	{
 		_characterInput.CharacterMovements.Disable();
 	}
+
+	private void OnControllerColliderHit(ControllerColliderHit hit)
+	{
+		//Debug.DrawRay(hit.point, hit.normal, Color.red, 1.25f);
+		//Debug.DrawRay(hit.point, Vector3.up, Color.blue, 1.25f);
+		float vectorAngle = Vector3.Angle(Vector3.up, hit.normal);
+		Debug.LogWarning(vectorAngle);
+		if (vectorAngle > 45 && vectorAngle > 91)
+		{
+			_lastWallSlideTime = Time.time;
+			_wallColliderVector = hit.normal;
+		}
+	}
 }
+
+// 90 / 1
+// 150 / ?
+// 180 / 0
+
+// 1 / 10
+// 0.5 / 15 ?
+// 0 / 20
+
+// (15 - 10) / (20 - 10);
