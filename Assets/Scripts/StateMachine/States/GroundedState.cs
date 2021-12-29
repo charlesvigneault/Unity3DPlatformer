@@ -20,47 +20,36 @@ public class GroundedState : BaseState
 
 	protected override void UpdateState()
 	{
+		_context.CharacterAppliedYMovement = GROUNDED_GRAVITY;
+
 		if (_context.CharacterController.isGrounded)
 		{
-			//TEMPORARY CODE, SEE METHOD COMMENT
-			float slopeAngle = SlopeAngle();
-
-			if (slopeAngle > 40)
-			{
-				_context.CharacterAppliedYMovement = -9f;
-			}
-			else if (slopeAngle > 35)
-			{
-				_context.CharacterAppliedYMovement = -8f;
-			}
-			else
-			{
-				_context.CharacterAppliedYMovement = -7f;
-			}
+			_fallingSince = 0;
 		}
 		else
 		{
-			_context.CharacterAppliedYMovement = GROUNDED_GRAVITY;
+			Vector3 position = _context.CharacterController.transform.position;
+			Ray rayDown = new Ray(position, Vector3.down);
+			Physics.Raycast(rayDown, out RaycastHit hitDownInfo, 1);
+			if (hitDownInfo.distance > 0 && hitDownInfo.distance < 0.4f)
+			{
+				position.y = position.y - hitDownInfo.distance;
+				_context.CharacterController.Move(new Vector3(0, -hitDownInfo.distance, 0));
+			}
+			else
+			{
+				_fallingSince += Time.deltaTime;
+			}
 		}
-	}
-
-	//Temporary method. We should look for ground and keep character on ground level when leaving ground in slope.
-	private float SlopeAngle()
-	{
-		RaycastHit hit;
-		if (Physics.Raycast(_context.transform.position, Vector3.down, out hit, (_context.CharacterController.height / 4) * 3))
-		{
-			return Vector3.Angle(Vector3.up, hit.normal);
-		}
-
-		return 0;
 	}
 
 	protected override void FixedUpdateState() { }
+
 	public override void ExitState()
 	{
 		Debug.Log("LEAVE GROUNDED STATE");
 	}
+
 	protected override void InitializeSubState()
 	{
 		//We could add conditions if we need to, in this case, the character will always spawn idle.
@@ -90,22 +79,13 @@ public class GroundedState : BaseState
 		}
 		else
 		{
-			if (!_context.CharacterController.isGrounded)
+			//Adding a buffer to let the player still be grounded for a while if he want to jump as close to the ledge but have input lag.
+			if (_fallingSince > FALLING_BUFFER)
 			{
-				//Adding a buffer to let the player still be grounded for a while if he want to jump as close to the ledge but have input lag.
-				if (_fallingSince > FALLING_BUFFER)
+				if (!_context.CharacterController.isGrounded)
 				{
 					SwitchState(_factory.Falling());
 				}
-				else
-				{
-					_fallingSince += Time.deltaTime;
-				}
-
-			}
-			else
-			{
-				_fallingSince = 0;
 			}
 		}
 	}

@@ -189,18 +189,18 @@ public class CharacterMovements : BaseStateMachine
 		_characterInput.CharacterMovements.Disable();
 	}
 
-	private void OnControllerColliderHit(ControllerColliderHit hit)
-	{
-		//Debug.DrawRay(hit.point, hit.normal, Color.red, 1.25f);
-		//Debug.DrawRay(hit.point, Vector3.up, Color.blue, 1.25f);
-		float vectorAngle = Vector3.Angle(Vector3.up, hit.normal);
-		Debug.LogWarning(vectorAngle);
-		if (vectorAngle > 45 && vectorAngle > 91)
-		{
-			_lastWallSlideTime = Time.time;
-			_wallColliderVector = hit.normal;
-		}
-	}
+	// private void OnControllerColliderHit(ControllerColliderHit hit)
+	// {
+	// 	//Debug.DrawRay(hit.point, hit.normal, Color.red, 1.25f);
+	// 	//Debug.DrawRay(hit.point, Vector3.up, Color.blue, 1.25f);
+	// 	float vectorAngle = Vector3.Angle(Vector3.up, hit.normal);
+	// 	Debug.LogWarning(vectorAngle);
+	// 	if (vectorAngle > 45 && vectorAngle > 91)
+	// 	{
+	// 		_lastWallSlideTime = Time.time;
+	// 		_wallColliderVector = hit.normal;
+	// 	}
+	// }
 }
 
 // 90 / 1
